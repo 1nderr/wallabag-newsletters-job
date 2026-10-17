@@ -219,5 +219,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-credentials.json
-token.json
+google_creds.json
+google_token.json
+wallabag_creds.json
+__pycache__
