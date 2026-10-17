@@ -68,7 +68,7 @@ def get_newsletters():
     service = None
     try:
         before = datetime.now()
-        after = before - timedelta(hours=3)
+        after = before - timedelta(days=1)
 
         service = build("gmail", "v1", credentials=google_token)
         results = (
