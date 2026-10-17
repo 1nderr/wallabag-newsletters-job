@@ -1,0 +1,17 @@
+[project]
+name = "wallabag-newsletters-job"
+version = "0.1.0"
+description = "A cron job that sends my newsletters to Wallabag"
+readme = "README.md"
+authors = [
+    { name = "1nderr", email = "20195347+1nderr@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+wallabag-newsletters-job = "wallabag_newsletters_job:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
