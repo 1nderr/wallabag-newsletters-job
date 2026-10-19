@@ -2,7 +2,6 @@ import base64
 import json
 import os.path
 import uuid
-from datetime import datetime, timedelta
 from email.message import EmailMessage
 
 import requests
@@ -67,16 +66,13 @@ def get_newsletters():
 
     service = None
     try:
-        before = datetime.now()
-        after = before - timedelta(days=1)
-
         service = build("gmail", "v1", credentials=google_token)
         results = (
             service.users()
             .messages()
             .list(
                 userId="me",
-                q=f"label:Newsletters before:{int(before.timestamp())} after:{int(after.timestamp())}",
+                q="label:newsletters label:unread",
             )
             .execute()
         )
@@ -84,10 +80,23 @@ def get_newsletters():
         if not messages:
             return
 
-        batch = service.new_batch_http_request(callback=process_message)
+        message_get_batch = service.new_batch_http_request(callback=process_message)
+        message_modify_batch = service.new_batch_http_request()
+
         for message in messages:
-            batch.add(service.users().messages().get(userId="me", id=message["id"]))
-        batch.execute()
+            message_get_batch.add(
+                service.users().messages().get(userId="me", id=message["id"])
+            )
+            message_modify_batch.add(
+                service.users()
+                .messages()
+                .modify(
+                    userId="me", id=message["id"], body={"removeLabelIds": ["UNREAD"]}
+                )
+            )
+
+        message_get_batch.execute()
+        message_modify_batch.execute()
 
         newsletters_sent = "\n- ".join([""] + SUBJECTS)
         errors = "\n- ".join([""] + ERRORS)
