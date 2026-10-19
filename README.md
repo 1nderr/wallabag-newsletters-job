@@ -1,6 +1,6 @@
 # Wallabag Newsletters Job
 
-This is a scheduled job I run to sync Wallabag with the newsletters I receive via email. It will look at emails from the past day and post them to Wallabag. It will also send you an email summarizing what it posted and if there were any errors.
+This is a scheduled job I run to sync Wallabag with the newsletters I receive via email. I run it every 1 minute. It will look at all of my UNREAD emails with the "newsletters" label and then send their contents to Wallabag. It will also mark those emails as read so that they do not get picked up on future runs.
 
 ## Prerequisites
 
