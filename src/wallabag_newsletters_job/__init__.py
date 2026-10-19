@@ -1,10 +1,12 @@
 import base64
 import json
 import os.path
+import re
 import uuid
 from email.message import EmailMessage
 
 import requests
+from bs4 import BeautifulSoup, Comment
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -145,10 +147,37 @@ def parse_multipart_message(payload, mimeType):
 
 
 def send_entry_to_wallabag(title, content):
+    HIDDEN = re.compile(r"display\s*:\s*none|max-height\s*:\s*0", re.IGNORECASE)
+    KEEP_ATTRS = {"href", "src", "alt"}
+
+    def html_cleanup(html: str) -> str:
+        soup = BeautifulSoup(html, "html.parser")
+
+        for tag in soup(["style", "script", "head", "title"]):
+            tag.extract()
+        for c in soup.find_all(string=lambda s: isinstance(s, Comment)):
+            c.extract()
+        for tag in soup.find_all(style=HIDDEN):
+            tag.extract()
+        for img in soup.find_all("img"):
+            if str(img.get("width", "")).strip() in {"1", "2"}:
+                img.extract()
+
+        for tag in soup.find_all(
+            ["table", "tbody", "thead", "tr", "td", "th", "center"]
+        ):
+            tag.unwrap()
+
+        for tag in soup.find_all(True):
+            tag.attrs = {k: v for k, v in tag.attrs.items() if k in KEEP_ATTRS}
+
+        inner = soup.body.decode_contents() if soup.body else str(soup)
+        return f"<article>{inner}</article>"
+
     payload = {
         "url": f"http://www.indervir.dev/{uuid.uuid4()}.html",
         "title": title,
-        "content": content,
+        "content": html_cleanup(content),
     }
 
     headers = {
